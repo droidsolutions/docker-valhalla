@@ -9,7 +9,9 @@ on:
     paths-ignore:
       - ".gitignore"
       - "**.md"
-
+  release:
+    types: # This configuration does not affect the page_build event above
+      - created
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
