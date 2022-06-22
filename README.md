@@ -5,7 +5,12 @@
 A hyper-flexible Docker image for the excellent [Valhalla](https://github.com/valhalla/valhalla) routing framework.
 
 ```bash
-docker run -dt --name valhalla_gis-ops -p 8002:8002 -v $PWD/custom_files:/valhalla_files gisops/valhalla:latest
+# download a file to custom_files and start valhalla
+mkdir custom_files
+wget -O custom_files/andorra-latest.osm.pbf https://download.geofabrik.de/europe/andorra-latest.osm.pbf
+docker run -dt --name valhalla_gis-ops -p 8002:8002 -v $PWD/custom_files:/custom_files gisops/valhalla:latest
+# or let the container download the file for you
+docker run -dt --name valhalla_gis-ops -p 8002:8002 -v $PWD/custom_files:/custom_files -e tile_urls=https://download.geofabrik.de/europe/andorra-latest.osm.pbf gisops/valhalla:latest
 ```
 
 This image aims at being user-friendly and most efficient with your time and resources. Once built, you can easily change Valhalla's configuration, the underlying OSM data graphs are built from, accompanying data (like Admin Areas, elevation tiles) or even pre-built graph tiles. Upon `docker restart <container>` those changes are taken into account via **hashed files**, and, if necessary, new graph tiles will be built automatically.
@@ -57,6 +62,8 @@ This image respects the following custom environment variables to be passed duri
 - `build_time_zones`: `True` builds the timezone db which is needed for time-dependent routing. `Force` will do the same, but first delete the existing db. Default `False`.
 - `build_tar` (since 29.10.2021/v`3.1.5`): `True` creates a tarball of the tiles including an index which allows for extremely faster graph loading after reboots. `Force` will do the same, but first delete the existing tarball. Default `True`.
 - `server_threads`: How many threads `valhalla_service` will run with. Default is the value of `nproc`.
+- `path_extension`: This path will be appended to the container-internal `/custom_files` (and by extension to the docker volume mapped to that path) and will be the directory where all files will be created. Can be very useful in certain deployment scenarios. No leading/trailing path separator allowed. Default is ''.
+- `serve_tiles`: `True` starts the valhalla service. Default `True`.
 
 ## Container recipes
 
@@ -65,10 +72,10 @@ For the following instructions to work, you'll need to have the image locally av
 Start a background container from that image:
 
 ```bash
-docker run -dt -v $PWD/custom_files:/valhalla_files -p 8002:8002 --name valhalla gisops/valhalla:latest
+docker run -dt -v $PWD/custom_files:/custom_files -p 8002:8002 --name valhalla gisops/valhalla:latest
 ```
 
-The important part here is, that you map a volume from your host machine to the container's **`/valhalla_files`**. The container will dump all relevant Valhalla files to that directory.
+The important part here is, that you map a volume from your host machine to the container's **`/custom_files`**. The container will dump all relevant Valhalla files to that directory.
 
 At this point Valhalla is running, but there is no graph tiles yet. Follow the steps below to customize your Valhalla instance in a heartbeat.
 
@@ -93,7 +100,7 @@ If you need to customize Valhalla's configuration to e.g. increase the allowed m
 
 #### Run Valhalla with pre-built tiles
 
-In the case where you have a pre-built `valhalla_tiles.tar` package from another Valhalla instance, you can also dump that to `/valhalla_files/` and they're loaded upon container restart if you set the following environment variables: `use_tiles_ignore_pbf=True`, `force_rebuild=False`. Also, don't forget to set the md5 sum for your `valhalla_tiles.tar` in `.file_hashes.txt`.
+In the case where you have a pre-built `valhalla_tiles.tar` package from another Valhalla instance, you can also dump that to `/custom_files/` and they're loaded upon container restart if you set the following environment variables: `use_tiles_ignore_pbf=True`, `force_rebuild=False`. Also, don't forget to set the md5 sum for your `valhalla_tiles.tar` in `.file_hashes.txt`.
 
 ## Notes on user management
 

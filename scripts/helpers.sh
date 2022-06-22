@@ -2,6 +2,14 @@
 
 # create global variables
 CUSTOM_FILES="/custom_files"
+# if the user requested a path_extension, apply it
+if [[ -n $path_extension ]]; then
+  CUSTOM_FILES="${CUSTOM_FILES}/${path_extension}"
+fi
+if ! test -d "${CUSTOM_FILES}"; then
+  mkdir "${CUSTOM_FILES}"
+fi
+
 CONFIG_FILE="${CUSTOM_FILES}/valhalla.json"
 TILE_DIR="${CUSTOM_FILES}/valhalla_tiles"
 TILE_TAR="${CUSTOM_FILES}/valhalla_tiles.tar"
@@ -59,14 +67,15 @@ add_hashes() {
 }
 
 download_file() {
-  if curl --location --output /dev/null --silent --head --fail "${1}"; then
+  if curl --location --output /dev/null --silent --show-error --head --fail "${1}"; then
     echo ""
     echo "==============================================================="
-    echo " Downloading  ${url}"
+    echo " Downloading  ${1}"
     echo "==============================================================="
-    curl --location -O ${url}
+    curl --location -o "${2}" ${1}
   else
-    echo "ERROR: Couldn't download from ${url}."
+    echo "ERROR: Couldn't download from ${1}.
+    "
     exit 1
   fi
 }

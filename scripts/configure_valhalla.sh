@@ -9,7 +9,7 @@
 #     - tile extract or folder doesn't exist (force)
 #     - use_tiles_ignore_pbf is false and new file constellations exist
 #   - downloads pbfs if there are none in the folder
-#   - 
+#   -
 
 # changed 18.11.2021: .file_hashes.txt -> file_hashes.txt
 # to be backwards-compatible we have to respect the old way too, which is usually shared with the host
@@ -93,8 +93,9 @@ if [[ ${files_counter} == 0 ]] && [[ ${do_build} == "True" ]]; then
   else
     echo "WARNING: No local files and no valhalla_tiles.tar found. Downloading links: ${tile_urls}!"
     for url in ${tile_urls}; do
-      download_file "${url}"
-      files="${files} $CUSTOM_FILES/$(basename $url)"
+      fp=$CUSTOM_FILES/$(basename $url)
+      download_file "${url}" "${fp}"
+      files="${files} ${fp}"
     done
   fi
 fi
@@ -147,12 +148,12 @@ if [[ "${do_build}" == "True" ]]; then
   valhalla_build_tiles -c ${CONFIG_FILE} -e build ${files} || exit 1
 
   # Build the elevation data if requested
-  if [[ "$do_elevation" == "True" ]]; then
-    if [[ "${build_elevation}" == "Force" ]] && ! test -d "${ELEVATION_PATH}"; then
+  if [[ $do_elevation == "True" ]]; then
+    if [[ ${build_elevation} == "Force" ]] && ! test -d "${ELEVATION_PATH}"; then
       echo "WARNING: Rebuilding elevation tiles"
-      rm -rf "$ELEVATION_PATH" || exit 1
+      rm -rf $ELEVATION_PATH || exit 1
     fi
-    maybe_create_dir "${ELEVATION_PATH}"
+    maybe_create_dir ${ELEVATION_PATH}
     echo ""
     echo "================================="
     echo "= Download the elevation tiles ="
