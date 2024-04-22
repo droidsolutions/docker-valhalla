@@ -2,7 +2,7 @@
 # remove a few superfluous things and
 # create a new runner image from ubuntu:22.04
 # with the previous runner's artifacts
-FROM ghcr.io/droidsolutions/valhalla:internal as builder
+FROM ghcr.io/droidsolutions/valhalla:2024-04-21 as builder
 
 # remove some stuff from the original image
 RUN cd /usr/local/bin && \
